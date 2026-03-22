@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+<h2>Dashboard</h2>
+
+<table>
+<thead>
+<tr>
+<th>Wing</th><th>New Tube</th><th>New Surface</th>
+<th>Old Tube</th><th>Old Surface</th>
+<th>Working</th><th>Non-working</th>
+</tr>
+</thead>
+<tbody id="table"></tbody>
+</table>
+
+</div>
+
+<script>
+fetch("/dashboard")
+.then(r=>r.json())
+.then(data=>{
+  for(let w in data){
+    let s=data[w];
+    table.innerHTML+=`
+    <tr>
+      <td>${w}</td>
+      <td>${s.newTube}</td>
+      <td>${s.newSurface}</td>
+      <td>${s.oldTube}</td>
+      <td>${s.oldSurface}</td>
+      <td>${s.working}</td>
+      <td>${s.nonworking}</td>
+    </tr>`;
+  }
+});
+</script>
+
+</body>
+</html>
