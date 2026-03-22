@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Electrician</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+
+<h2>Electrician Panel</h2>
+
+<div class="row">
+  <select id="wing">
+    <option>A</option><option>B</option><option>C</option>
+    <option>D</option><option>E</option><option>F</option>
+    <option>G</option><option>H</option><option>I</option><option>J</option>
+  </select>
+
+  <select id="floor"></select>
+
+  <select id="type">
+    <option>Tube</option>
+    <option>Surface</option>
+  </select>
+</div>
+
+<div class="row">
+  <input id="serial" placeholder="Serial">
+  <select id="status">
+    <option>Working</option>
+    <option>Non-working</option>
+  </select>
+</div>
+
+<button onclick="addNew()">Add New</button>
+
+<h3>Old Light</h3>
+
+<div class="row">
+  <select id="oldType">
+    <option>Tube</option>
+    <option>Surface</option>
+  </select>
+  <input id="working" placeholder="Working">
+  <input id="nonworking" placeholder="Non-working">
+</div>
+
+<button onclick="addOld()">Save</button>
+
+<table>
+  <thead>
+    <tr>
+      <th>Wing</th><th>Floor</th><th>Type</th><th>Serial</th>
+      <th>Status</th><th>Old</th><th>W</th><th>NW</th>
+    </tr>
+  </thead>
+  <tbody id="table"></tbody>
+</table>
+
+</div>
+
+<script>
+let floor = document.getElementById("floor");
+floor.innerHTML = "<option>G</option>";
+for(let i=1;i<=17;i++) floor.innerHTML += `<option>${i}</option>`;
+
+let temp = {};
+
+function addNew(){
+  temp = {
+    wing: wing.value,
+    floor: floor.value,
+    newType: type.value,
+    serial: serial.value,
+    status: status.value
+  };
+  alert("Now add old light");
+}
+
+function addOld(){
+  temp.oldType = oldType.value;
+  temp.working = working.value;
+  temp.nonworking = nonworking.value;
+
+  fetch("/add", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(temp)
+  }).then(()=>load());
+}
+
+function load(){
+  fetch("/data")
+  .then(r=>r.json())
+  .then(data=>{
+    table.innerHTML="";
+    data.forEach(r=>{
+      table.innerHTML+=`
+      <tr>
+        <td>${r.wing}</td>
+        <td>${r.floor}</td>
+        <td>${r.newType}</td>
+        <td>${r.serial}</td>
+        <td>${r.status}</td>
+        <td>${r.oldType}</td>
+        <td>${r.working}</td>
+        <td>${r.nonworking}</td>
+      </tr>`;
+    });
+  });
+}
+load();
+</script>
+
+</body>
+</html>
