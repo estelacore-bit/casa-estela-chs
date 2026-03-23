@@ -3,87 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Casa Estela - Light Installation</title>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <title>Casa Estela - Installation Form</title>
     <style>
         :root { --primary: #2563eb; --bg: #f8fafc; --text: #1e293b; }
         body { font-family: sans-serif; margin: 0; background: var(--bg); color: var(--text); padding-bottom: 40px; }
         .container { max-width: 500px; margin: auto; padding: 10px; }
         .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 15px; }
-        h2 { margin-top: 0; color: var(--primary); font-size: 1.1rem; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        h2 { margin: 0 0 15px; color: var(--primary); font-size: 1.1rem; }
         label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.85rem; color: #64748b; }
         select, input { width: 100%; padding: 14px; margin-bottom: 15px; border: 2px solid #cbd5e1; border-radius: 8px; font-size: 1rem; box-sizing: border-box; background: white; }
-        .id-preview { background: #2563eb; color: white; padding: 12px; border-radius: 8px; font-family: monospace; text-align: center; font-weight: bold; margin-bottom: 15px; font-size: 1.1rem; }
+        .id-preview { background: #2563eb; color: white; padding: 15px; border-radius: 8px; font-family: monospace; text-align: center; font-weight: bold; margin-bottom: 15px; font-size: 1.2rem; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         button { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; }
-        button:disabled { background: #94a3b8; }
-        .photo-btn { background: #f1f5f9; color: var(--primary); border: 2px dashed #94a3b8; margin-bottom: 10px; width:100%; padding:15px; border-radius:8px; font-weight:bold; }
+        .photo-btn { background: #f1f5f9; color: var(--primary); border: 2px dashed #94a3b8; margin-bottom: 10px; padding:15px; width:100%; border-radius:8px; font-weight:bold; }
         .photo-preview { width: 100%; max-height: 200px; border-radius: 8px; object-fit: cover; margin-bottom: 10px; display: none; }
-        .nav-link { display: block; text-align: center; margin-top: 20px; color: var(--primary); text-decoration: none; font-weight: bold; }
+        .footer-nav { margin-top: 20px; text-align: center; }
+        .footer-nav a { color: var(--primary); text-decoration: none; font-weight: bold; margin: 0 10px; }
     </style>
 </head>
 <body>
-
 <div class="container">
     <div class="card">
-        <h2>🛠️ New Installation</h2>
-        
+        <h2>🛠️ Light Installation</h2>
         <div class="id-preview" id="id-preview">ESTELA-A-G-T-A1</div>
-
         <img id="image-preview" class="photo-preview" src="#">
         <input type="file" id="photo-input" accept="image/*" capture="camera" style="display:none">
-        <button type="button" class="photo-btn" onclick="document.getElementById('photo-input').click()">
-            📷 Capture Floor & Light Photo
-        </button>
+        <button type="button" class="photo-btn" onclick="document.getElementById('photo-input').click()">📷 Take Installation Photo</button>
 
         <label>Wing</label>
         <select id="wing" onchange="updatePreview()">
-            <option value="A">Wing A</option><option value="B">Wing B</option>
-            <option value="C">Wing C</option><option value="D">Wing D</option>
-            <option value="E">Wing E</option><option value="F">Wing F</option>
-            <option value="G">Wing G</option><option value="H">Wing H</option>
-            <option value="I">Wing I</option><option value="J">Wing J</option>
+            <option value="A">Wing A</option><option value="B">Wing B</option><option value="C">Wing C</option>
+            <option value="D">Wing D</option><option value="E">Wing E</option><option value="F">Wing F</option>
+            <option value="G">Wing G</option><option value="H">Wing H</option><option value="I">Wing I</option><option value="J">Wing J</option>
         </select>
 
         <label>Floor</label>
-        <select id="floor" onchange="updatePreview()">
-            <option value="G">Ground</option>
-        </select>
+        <select id="floor" onchange="updatePreview()"></select>
 
         <div class="grid-2">
-            <div>
-                <label>Light Type</label>
-                <select id="type" onchange="handleTypeChange()">
-                    <option value="T">Tube Light</option>
-                    <option value="S">Surface Light</option>
-                </select>
-            </div>
-            <div>
-                <label>Side / Staircase</label>
-                <select id="side" onchange="handleSideChange()">
-                    <option value="A">Staircase A</option>
-                    <option value="B">Staircase B</option>
-                    <option value="C">Staircase C</option>
-                    <option value="D">Staircase D</option>
-                </select>
-            </div>
+            <div><label>Type</label><select id="type" onchange="handleTypeChange()"><option value="T">Tube</option><option value="S">Surface</option></select></div>
+            <div><label>Side</label><select id="side" onchange="handleSideChange()"><option value="A">Side A</option><option value="B">Side B</option><option value="C">Side C</option><option value="D">Side D</option></select></div>
         </div>
 
-        <label>Unit / Point No.</label>
-        <select id="unit" onchange="updatePreview()">
-            </select>
+        <label>Point</label>
+        <select id="unit" onchange="updatePreview()"></select>
 
-        <label>Old Light Status</label>
-        <select id="old-status">
-            <option value="Working">Working</option>
-            <option value="Non-Working">Non-Working</option>
-        </select>
+        <label>Old Status</label>
+        <select id="old-status"><option value="Working">Working</option><option value="Non-Working">Non-Working</option></select>
 
         <button id="submit-btn" onclick="submitData()">Submit Record</button>
-        <a href="/dashboard" class="nav-link">📊 View All Records (Dashboard)</a>
+        <div class="footer-nav">
+            <a href="/dashboard">📋 Logs</a> | <a href="/report">📈 Reports</a>
+        </div>
     </div>
 </div>
-
 <script>
     const floorSelect = document.getElementById('floor');
     const unitSelect = document.getElementById('unit');
@@ -92,61 +65,44 @@
     const photoInput = document.getElementById('photo-input');
     const imagePreview = document.getElementById('image-preview');
 
-    // Init: Generate floors 01-17
     for(let i=1; i<=17; i++) {
         let opt = document.createElement('option');
         opt.value = i < 10 ? `0${i}` : i;
         opt.innerHTML = `Floor ${i}`;
         floorSelect.appendChild(opt);
     }
+    let optG = document.createElement('option'); optG.value = "G"; optG.innerHTML = "Ground";
+    floorSelect.prepend(optG); floorSelect.value = "G";
 
-    // 1. Logic for Light Type Change
     function handleTypeChange() {
         if (typeSelect.value === 'S') {
-            // Surface Light uses A, B, C, D
-            sideSelect.innerHTML = `
-                <option value="A">Staircase A</option>
-                <option value="B">Staircase B</option>
-                <option value="C">Staircase C</option>
-                <option value="D">Staircase D</option>`;
+            sideSelect.innerHTML = `<option value="A">Side A</option><option value="B">Side B</option><option value="C">Side C</option><option value="D">Side D</option>`;
         } else {
-            // Tube Light usually only A or B
-            sideSelect.innerHTML = `
-                <option value="A">Staircase A</option>
-                <option value="B">Staircase B</option>`;
+            sideSelect.innerHTML = `<option value="A">Side A</option><option value="B">Side B</option>`;
         }
-        handleSideChange(); // Trigger unit update
+        handleSideChange();
     }
 
-    // 2. Logic to AUTO-SYNC Side and Unit
     function handleSideChange() {
-        const selectedSide = sideSelect.value;
-        
+        const sel = sideSelect.value;
         if (typeSelect.value === 'S') {
-            // For Surface, Point matches the Letter (A, B, C, D)
-            unitSelect.innerHTML = `<option value="${selectedSide}">Point ${selectedSide}</option>`;
+            unitSelect.innerHTML = `<option value="${sel}">${sel}</option>`;
         } else {
-            // For Tube, Point matches the Number (1, 2)
-            const unitVal = selectedSide === 'A' ? '1' : '2';
-            unitSelect.innerHTML = `<option value="${unitVal}">Point ${unitVal}</option>`;
+            const u = sel === 'A' ? '1' : '2';
+            unitSelect.innerHTML = `<option value="${u}">${u}</option>`;
         }
         updatePreview();
     }
 
     function updatePreview() {
-        const id = `ESTELA-${document.getElementById('wing').value}-${floorSelect.value}-${typeSelect.value}-${sideSelect.value}${unitSelect.value}`;
-        document.getElementById('id-preview').innerText = id;
+        document.getElementById('id-preview').innerText = `ESTELA-${document.getElementById('wing').value}-${floorSelect.value}-${typeSelect.value}-${sideSelect.value}${unitSelect.value}`;
     }
 
-    // Photo Handling
     photoInput.addEventListener('change', function() {
         const file = this.files[0];
         if (file) {
             const reader = new FileReader();
-            reader.onload = function() {
-                imagePreview.src = this.result;
-                imagePreview.style.display = 'block';
-            };
+            reader.onload = function() { imagePreview.src = this.result; imagePreview.style.display = 'block'; };
             reader.readAsDataURL(file);
         }
     });
@@ -154,35 +110,11 @@
     async function submitData() {
         const btn = document.getElementById('submit-btn');
         btn.disabled = true; btn.innerText = "Saving...";
-        
-        const payload = {
-            generatedId: document.getElementById('id-preview').innerText,
-            wing: document.getElementById('wing').value,
-            floor: floorSelect.value,
-            type: typeSelect.value,
-            side: sideSelect.value,
-            unitNo: unitSelect.value,
-            oldStatus: document.getElementById('old-status').value,
-            photo: imagePreview.src
-        };
-
-        const res = await fetch('/api/install', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        
-        if(res.ok) {
-            alert("✅ Record Saved Successfully!");
-            location.reload();
-        } else {
-            const err = await res.json();
-            alert("❌ Error: " + err.message);
-            btn.disabled = false; btn.innerText = "Submit Record";
-        }
+        const payload = { generatedId: document.getElementById('id-preview').innerText, wing: document.getElementById('wing').value, floor: floorSelect.value, type: typeSelect.value, side: sideSelect.value, unitNo: unitSelect.value, oldStatus: document.getElementById('old-status').value, photo: imagePreview.src };
+        const res = await fetch('/api/install', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        if(res.ok) { alert("✅ Saved!"); location.reload(); } else { alert("❌ Duplicate ID!"); btn.disabled = false; btn.innerText = "Submit Record"; }
     }
-
-    handleTypeChange(); // Initialize
+    handleTypeChange();
 </script>
 </body>
 </html>
