@@ -1,8 +1,12 @@
 {
   "name": "casa-estela-system",
   "version": "1.0.0",
+  "description": "Sensor Light Management System",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
   }
 }
