@@ -22,11 +22,9 @@ const readData = () => {
 app.post('/api/install', (req, res) => {
     const db = readData();
     const newRecord = { ...req.body, timestamp: new Date().toISOString() };
-    
     if (db.some(item => item.generatedId === newRecord.generatedId)) {
-        return res.status(400).json({ success: false, message: "This Light ID already exists in the system." });
+        return res.status(400).json({ success: false, message: "This Light ID already exists." });
     }
-
     db.push(newRecord);
     fs.writeFileSync(DATA_FILE, JSON.stringify(db, null, 2));
     res.json({ success: true });
@@ -36,8 +34,9 @@ app.get('/api/data', (req, res) => {
     res.json(readData());
 });
 
-app.get('/dashboard', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+// Route for the new Report/Analytics page
+app.get('/report', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'report.html'));
 });
 
 app.listen(PORT, () => console.log(`Server live on port ${PORT}`));
