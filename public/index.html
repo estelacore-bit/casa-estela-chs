@@ -6,20 +6,20 @@
     <title>Casa Estela - Light Installation</title>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
-        :root { --primary: #2563eb; --bg: #f8fafc; --text: #1e293b; --success: #16a34a; }
+        :root { --primary: #2563eb; --bg: #f8fafc; --text: #1e293b; }
         body { font-family: sans-serif; margin: 0; background: var(--bg); color: var(--text); padding-bottom: 40px; }
         .container { max-width: 500px; margin: auto; padding: 10px; }
         .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 15px; }
         h2 { margin-top: 0; color: var(--primary); font-size: 1.1rem; border-bottom: 1px solid #eee; padding-bottom: 10px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.85rem; color: #64748b; }
-        select, input { width: 100%; padding: 14px; margin-bottom: 15px; border: 2px solid #cbd5e1; border-radius: 8px; font-size: 1rem; box-sizing: border-box; }
-        .id-preview { background: #f1f5f9; padding: 12px; border-radius: 8px; font-family: monospace; text-align: center; font-weight: bold; margin-bottom: 15px; border: 1px dashed #94a3b8; font-size: 1.1rem; }
+        select, input { width: 100%; padding: 14px; margin-bottom: 15px; border: 2px solid #cbd5e1; border-radius: 8px; font-size: 1rem; box-sizing: border-box; background: white; }
+        .id-preview { background: #2563eb; color: white; padding: 12px; border-radius: 8px; font-family: monospace; text-align: center; font-weight: bold; margin-bottom: 15px; font-size: 1.1rem; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         button { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; }
         button:disabled { background: #94a3b8; }
-        .photo-btn { background: #f1f5f9; color: var(--primary); border: 2px dashed #94a3b8; margin-bottom: 10px; }
+        .photo-btn { background: #f1f5f9; color: var(--primary); border: 2px dashed #94a3b8; margin-bottom: 10px; width:100%; padding:15px; border-radius:8px; font-weight:bold; }
         .photo-preview { width: 100%; max-height: 200px; border-radius: 8px; object-fit: cover; margin-bottom: 10px; display: none; }
-        #ocr-status { font-size: 0.8rem; text-align: center; color: #ca8a04; margin-bottom: 10px; display: none; }
+        .nav-link { display: block; text-align: center; margin-top: 20px; color: var(--primary); text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -31,7 +31,6 @@
         <div class="id-preview" id="id-preview">ESTELA-A-G-T-A1</div>
 
         <img id="image-preview" class="photo-preview" src="#">
-        <div id="ocr-status">Processing Floor Sign...</div>
         <input type="file" id="photo-input" accept="image/*" capture="camera" style="display:none">
         <button type="button" class="photo-btn" onclick="document.getElementById('photo-input').click()">
             📷 Capture Floor & Light Photo
@@ -61,15 +60,18 @@
             </div>
             <div>
                 <label>Side / Staircase</label>
-                <select id="side" onchange="updatePreview()">
+                <select id="side" onchange="handleSideChange()">
                     <option value="A">Staircase A</option>
                     <option value="B">Staircase B</option>
+                    <option value="C">Staircase C</option>
+                    <option value="D">Staircase D</option>
                 </select>
             </div>
         </div>
 
         <label>Unit / Point No.</label>
-        <select id="unit" onchange="updatePreview()"></select>
+        <select id="unit" onchange="updatePreview()">
+            </select>
 
         <label>Old Light Status</label>
         <select id="old-status">
@@ -78,16 +80,17 @@
         </select>
 
         <button id="submit-btn" onclick="submitData()">Submit Record</button>
+        <a href="/dashboard" class="nav-link">📊 View All Records (Dashboard)</a>
     </div>
 </div>
 
 <script>
     const floorSelect = document.getElementById('floor');
     const unitSelect = document.getElementById('unit');
+    const sideSelect = document.getElementById('side');
     const typeSelect = document.getElementById('type');
     const photoInput = document.getElementById('photo-input');
     const imagePreview = document.getElementById('image-preview');
-    const statusDiv = document.getElementById('ocr-status');
 
     // Init: Generate floors 01-17
     for(let i=1; i<=17; i++) {
@@ -97,47 +100,52 @@
         floorSelect.appendChild(opt);
     }
 
-    // Handle Type Change (Surface vs Tube)
+    // 1. Logic for Light Type Change
     function handleTypeChange() {
         if (typeSelect.value === 'S') {
-            unitSelect.innerHTML = `
-                <option value="A">Point A</option><option value="B">Point B</option>
-                <option value="C">Point C</option><option value="D">Point D</option>`;
+            // Surface Light uses A, B, C, D
+            sideSelect.innerHTML = `
+                <option value="A">Staircase A</option>
+                <option value="B">Staircase B</option>
+                <option value="C">Staircase C</option>
+                <option value="D">Staircase D</option>`;
         } else {
-            unitSelect.innerHTML = `
-                <option value="1">Point 1</option><option value="2">Point 2</option>`;
+            // Tube Light usually only A or B
+            sideSelect.innerHTML = `
+                <option value="A">Staircase A</option>
+                <option value="B">Staircase B</option>`;
+        }
+        handleSideChange(); // Trigger unit update
+    }
+
+    // 2. Logic to AUTO-SYNC Side and Unit
+    function handleSideChange() {
+        const selectedSide = sideSelect.value;
+        
+        if (typeSelect.value === 'S') {
+            // For Surface, Point matches the Letter (A, B, C, D)
+            unitSelect.innerHTML = `<option value="${selectedSide}">Point ${selectedSide}</option>`;
+        } else {
+            // For Tube, Point matches the Number (1, 2)
+            const unitVal = selectedSide === 'A' ? '1' : '2';
+            unitSelect.innerHTML = `<option value="${unitVal}">Point ${unitVal}</option>`;
         }
         updatePreview();
     }
 
     function updatePreview() {
-        const id = `ESTELA-${document.getElementById('wing').value}-${floorSelect.value}-${typeSelect.value}-${document.getElementById('side').value}${unitSelect.value}`;
+        const id = `ESTELA-${document.getElementById('wing').value}-${floorSelect.value}-${typeSelect.value}-${sideSelect.value}${unitSelect.value}`;
         document.getElementById('id-preview').innerText = id;
     }
 
-    // Photo & OCR Logic
+    // Photo Handling
     photoInput.addEventListener('change', function() {
         const file = this.files[0];
         if (file) {
             const reader = new FileReader();
-            reader.onload = async function() {
+            reader.onload = function() {
                 imagePreview.src = this.result;
                 imagePreview.style.display = 'block';
-                statusDiv.style.display = 'block';
-                const worker = await Tesseract.createWorker('eng');
-                const { data: { text } } = await worker.recognize(this.result);
-                const cleanText = text.toUpperCase();
-                
-                // Floor Auto-Detect
-                if(cleanText.includes("G")) floorSelect.value = "G";
-                for(let i=1; i<=17; i++) {
-                    if(cleanText.includes(`FLOOR ${i}`) || cleanText.includes(` ${i} `)) {
-                        floorSelect.value = i < 10 ? `0${i}` : i;
-                    }
-                }
-                updatePreview();
-                statusDiv.innerText = "Check dropdowns and submit.";
-                await worker.terminate();
             };
             reader.readAsDataURL(file);
         }
@@ -152,7 +160,7 @@
             wing: document.getElementById('wing').value,
             floor: floorSelect.value,
             type: typeSelect.value,
-            side: document.getElementById('side').value,
+            side: sideSelect.value,
             unitNo: unitSelect.value,
             oldStatus: document.getElementById('old-status').value,
             photo: imagePreview.src
@@ -163,17 +171,18 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
-        const result = await res.json();
-        if(result.success) {
-            alert("Saved!");
+        
+        if(res.ok) {
+            alert("✅ Record Saved Successfully!");
             location.reload();
         } else {
-            alert(result.message);
+            const err = await res.json();
+            alert("❌ Error: " + err.message);
             btn.disabled = false; btn.innerText = "Submit Record";
         }
     }
 
-    handleTypeChange(); // Set initial state
+    handleTypeChange(); // Initialize
 </script>
 </body>
 </html>
