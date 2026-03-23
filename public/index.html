@@ -1,17 +1,232 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Casa Estela</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Casa Estela Management (OCR)</title>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <style>
+        :root { --primary: #2563eb; --bg: #f8fafc; --text: #1e293b; --success: #16a34a; --warning: #ca8a04; }
+        body { font-family: sans-serif; margin: 0; background: var(--bg); color: var(--text); padding-bottom: 30px; }
+        .container { max-width: 500px; margin: auto; padding: 10px; }
+        .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 15px; }
+        
+        h2 { margin-top: 0; color: var(--primary); font-size: 1.1rem; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.85rem; color: #64748b; }
+        select, input[type="text"], input[type="password"] { width: 100%; padding: 14px; margin-bottom: 15px; border: 2px solid #cbd5e1; border-radius: 8px; font-size: 1rem; box-sizing: border-box; -webkit-appearance: none; }
+        select:focus, input:focus { border-color: var(--primary); outline: none; }
+        
+        button { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: background 0.2s; }
+        button:active { background: #1d4ed8; }
+        
+        /* Photo Section */
+        #photo-input { display: none; }
+        .photo-btn { background: #f1f5f9; color: var(--primary); border: 2px dashed #94a3b8; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; }
+        .photo-preview { width: 100%; max-height: 200px; border-radius: 8px; object-fit: cover; margin-bottom: 10px; display: none; border: 2px solid #e2e8f0; }
+        
+        /* Status Display */
+        #ocr-status { font-size: 0.85rem; padding: 10px; border-radius: 6px; margin-bottom: 15px; display: none; text-align: center; }
+        .status-processing { background: #fef9c3; color: var(--warning); border: 1px solid #fde047; }
+        .status-success { background: #dcfce7; color: var(--success); border: 1px solid #b91c1c; }
+
+        .hidden { display: none; }
+        .id-preview { background: #f1f5f9; padding: 12px; border-radius: 8px; font-family: monospace; text-align: center; font-weight: bold; margin-bottom: 15px; border: 1px dashed #94a3b8; color: var(--text); }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    </style>
 </head>
 <body>
 
 <div class="container">
-  <h2>Casa Estela System</h2>
+    <div id="install-section" class="card">
+        <h2>🛠️ New Installation</h2>
+        
+        <div class="id-preview" id="id-preview">ESTELA-A-G-T-A1</div>
+        
+        <img id="image-preview" class="photo-preview" src="#" alt="Preview">
+        <div id="ocr-status">Processing image...</div>
 
-  <button onclick="location.href='electrician.html'">Electrician Panel</button>
-  <button onclick="location.href='dashboard.html'">Dashboard</button>
+        <input type="file" id="photo-input" accept="image/*" capture="camera">
+        <button type="button" class="photo-btn" onclick="document.getElementById('photo-input').click()">
+            📷 Take Photo of Floor Sign
+        </button>
+
+        <hr style="border: 0.5px solid #eee; margin: 20px 0;">
+
+        <label>Wing</label>
+        <select id="wing" onchange="updatePreview()">
+            <option value="A">Wing A</option><option value="B">Wing B</option>
+            <option value="C">Wing C</option><option value="D">Wing D</option>
+            <option value="E">Wing E</option><option value="F">Wing F</option>
+            <option value="G">Wing G</option><option value="H">Wing H</option>
+            <option value="I">Wing I</option><option value="J">Wing J</option>
+        </select>
+
+        <label>Floor</label>
+        <select id="floor" onchange="updatePreview()">
+            <option value="G">Ground</option>
+            </select>
+
+        <div class="grid-2">
+            <div>
+                <label>Light Type</label>
+                <select id="type" onchange="updatePreview()">
+                    <option value="T">Tube Light</option>
+                    <option value="S">Surface Light</option>
+                </select>
+            </div>
+            <div>
+                <label>Side / Staircase</label>
+                <select id="side" onchange="updatePreview()">
+                    <option value="A">Staircase A</option>
+                    <option value="B">Staircase B</option>
+                </select>
+            </div>
+        </div>
+
+        <label>Unit No (1-4)</label>
+        <select id="unit" onchange="updatePreview()">
+            <option value="1">1</option><option value="2">2</option>
+            <option value="3">3</option><option value="4">4</option>
+        </select>
+
+        <hr style="border: 0.5px solid #eee; margin: 20px 0;">
+        
+        <h2>♻️ Old Light Removal</h2>
+        <label>Status of Old Light</label>
+        <select id="old-status">
+            <option value="Working">Working</option>
+            <option value="Non-Working">Non-Working</option>
+        </select>
+
+        <button onclick="submitData()">Submit Record</button>
+    </div>
 </div>
 
+<script>
+    // 3. Initialize UI & Tesseract Worker
+    const floorSelect = document.getElementById('floor');
+    const photoInput = document.getElementById('photo-input');
+    const imagePreview = document.getElementById('image-preview');
+    const statusDiv = document.getElementById('ocr-status');
+
+    // Generate floors 1-17
+    for(let i=1; i<=17; i++) {
+        let opt = document.createElement('option');
+        const val = i < 10 ? `0${i}` : `${i}`; // Pad single digits: 01, 02
+        opt.value = val; opt.innerHTML = `Floor ${i}`;
+        floorSelect.appendChild(opt);
+    }
+
+    // Initialize Tesseract Worker globally
+    let worker;
+    async function initWorker() {
+        worker = await Tesseract.createWorker('eng');
+        console.log("OCR Worker Ready");
+    }
+    initWorker();
+
+    // 4. Update the Unique Naming ID
+    function updatePreview() {
+        const w = document.getElementById('wing').value;
+        const f = document.getElementById('floor').value;
+        const t = document.getElementById('type').value;
+        const s = document.getElementById('side').value;
+        const u = document.getElementById('unit').value;
+        document.getElementById('id-preview').innerText = `ESTELA-${w}-${f}-${t}-${s}${u}`;
+    }
+
+    // 5. Handle Photo Input and Start OCR
+    photoInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            
+            reader.addEventListener('load', function() {
+                imagePreview.src = this.result;
+                imagePreview.style.display = 'block';
+                performOCR(this.result); // Process the image data
+            });
+            
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // 6. CORE AI LOGIC: OCR and Autodetect
+    async function performOCR(imageData) {
+        statusDiv.style.display = 'block';
+        statusDiv.className = 'status-processing';
+        statusDiv.innerHTML = 'Analyzing photo for location signs...';
+
+        if (!worker) await initWorker();
+        
+        try {
+            const { data: { text } } = await worker.recognize(imageData);
+            console.log("Detected Text:", text);
+            
+            // Clean the text: convert to uppercase, remove extra spaces
+            const cleanText = text.toUpperCase().replace(/\s+/g, ' ');
+            
+            statusDiv.className = 'status-success';
+            statusDiv.innerHTML = `Analysis complete. Found: "${text.substring(0,20)}..."`;
+            setTimeout(() => statusDiv.style.display = 'none', 3000); // Hide after 3s
+
+            // 🧠 AUTO-DETECT LOGIC 🧠
+            
+            // A. Detect Floor (Ground vs 1-17)
+            if (cleanText.includes("G ") || cleanText.includes("GR") || cleanText.includes("FLOOR G") || cleanText.includes("GROUND")) {
+                document.getElementById('floor').value = "G";
+            } else {
+                // Look for numbers 1 through 17
+                for (let i = 17; i >= 1; i--) { // Check 17 down to 1 to match double digits first
+                    const numStr = i.toString();
+                    const paddedStr = i < 10 ? `0${i}` : `${i}`;
+                    
+                    // Regex looks for the number isolated by non-alphanumeric chars or boundaries
+                    const regex = new RegExp(`\\b(${numStr}|${paddedStr})\\b`, 'i'); 
+                    
+                    if (regex.test(cleanText) || cleanText.includes(`FLOOR ${i}`)) {
+                        document.getElementById('floor').value = paddedStr;
+                        break; // Found it, stop looking
+                    }
+                }
+            }
+
+            // B. Detect Light Type (Looking for specific box labeling)
+            if (cleanText.includes("SURFACE") || cleanText.includes("SQ") || cleanText.includes("ROUND")) {
+                document.getElementById('type').value = "S";
+            } else if (cleanText.includes("TUBE") || cleanText.includes("TLED") || cleanText.includes("FT")) {
+                document.getElementById('type').value = "T";
+            }
+
+            // C. Detect Wing (If signage is clear, e.g., "WING A")
+            for (let charCode = 65; charCode <= 74; charCode++) { // A to J
+                const letter = String.fromCharCode(charCode);
+                if (cleanText.includes(`WING ${letter}`) || cleanText.includes(`WNG ${letter}`)) {
+                    document.getElementById('wing').value = letter;
+                    break;
+                }
+            }
+
+            // Update the preview ID immediately
+            updatePreview();
+
+        } catch (error) {
+            console.error("OCR Error:", error);
+            statusDiv.className = 'status-processing';
+            statusDiv.style.color = 'red';
+            statusDiv.innerHTML = "OCR failed. Please select dropdowns manually.";
+        }
+    }
+
+    async function submitData() {
+        const id = document.getElementById('id-preview').innerText;
+        alert("Saved ID: " + id);
+        // Add Photo data to the payload if sending to Phase 2 (base64 string)
+        // const photoBase64 = imagePreview.src;
+    }
+
+    // Initial ID load
+    updatePreview();
+</script>
 </body>
 </html>
