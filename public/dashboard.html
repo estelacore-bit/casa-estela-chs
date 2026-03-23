@@ -1,46 +1,73 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Dashboard</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casa Estela Dashboard</title>
+    <style>
+        body { font-family: sans-serif; background: #f1f5f9; padding: 20px; }
+        .container { max-width: 900px; margin: auto; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h1 { color: #1e293b; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.9rem; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f8fafc; color: #64748b; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; }
+        .tube { background: #dbeafe; color: #1e40af; }
+        .surface { background: #fef9c3; color: #854d0e; }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <div class="card">
+            <h1>📊 Installation Logs</h1>
+            <div id="stats">Loading totals...</div>
+            <table id="log-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Location ID</th>
+                        <th>Type</th>
+                        <th>Old Status</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    </tbody>
+            </table>
+        </div>
+    </div>
 
-<div class="container">
-<h2>Dashboard</h2>
+    <script>
+        async function loadDashboard() {
+            const response = await fetch('/api/data');
+            const data = await response.json();
+            const body = document.getElementById('table-body');
+            const stats = document.getElementById('stats');
 
-<table>
-<thead>
-<tr>
-<th>Wing</th><th>New Tube</th><th>New Surface</th>
-<th>Old Tube</th><th>Old Surface</th>
-<th>Working</th><th>Non-working</th>
-</tr>
-</thead>
-<tbody id="table"></tbody>
-</table>
+            if (data.length === 0) {
+                body.innerHTML = "<tr><td colspan='4'>No records found yet.</td></tr>";
+                return;
+            }
 
-</div>
+            // Show simple stats
+            stats.innerHTML = `<strong>Total Installed:</strong> ${data.length}`;
 
-<script>
-fetch("/dashboard")
-.then(r=>r.json())
-.then(data=>{
-  for(let w in data){
-    let s=data[w];
-    table.innerHTML+=`
-    <tr>
-      <td>${w}</td>
-      <td>${s.newTube}</td>
-      <td>${s.newSurface}</td>
-      <td>${s.oldTube}</td>
-      <td>${s.oldSurface}</td>
-      <td>${s.working}</td>
-      <td>${s.nonworking}</td>
-    </tr>`;
-  }
-});
-</script>
-
+            // Sort by latest first
+            data.reverse().forEach(item => {
+                const row = `
+                    <tr>
+                        <td>${new Date(item.timestamp).toLocaleString()}</td>
+                        <td><strong>${item.generatedId}</strong></td>
+                        <td><span class="badge ${item.type === 'T' ? 'tube' : 'surface'}">
+                            ${item.type === 'T' ? 'Tube' : 'Surface'}
+                        </span></td>
+                        <td>${item.oldLight || 'N/A'}</td>
+                    </tr>
+                `;
+                body.innerHTML += row;
+            });
+        }
+        loadDashboard();
+    </script>
 </body>
 </html>
