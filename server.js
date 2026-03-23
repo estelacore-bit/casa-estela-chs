@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 
-// Increase limit to allow photo data (Base64) to be sent to the server
+// Allow large JSON payloads for Base64 photo strings
 app.use(express.json({ limit: '10mb' })); 
 app.use(express.static('public'));
 
@@ -24,7 +24,7 @@ const readData = () => {
 
 // --- ROUTES ---
 
-// 1. Submit Installation (Used by Electrician)
+// 1. Submit Installation
 app.post('/api/install', (req, res) => {
     const { generatedId, wing, floor, type, side, unitNo, oldStatus, photo } = req.body;
 
@@ -47,7 +47,7 @@ app.post('/api/install', (req, res) => {
         side,
         unitNo,
         oldStatus,
-        photo: photo || null, // Stores the image string
+        photo: photo || null,
         timestamp: new Date().toISOString()
     };
 
@@ -55,23 +55,22 @@ app.post('/api/install', (req, res) => {
 
     try {
         fs.writeFileSync(DATA_FILE, JSON.stringify(db, null, 2));
-        console.log(`✅ Record Saved: ${generatedId}`);
         res.json({ success: true, message: "Saved successfully!" });
     } catch (err) {
-        res.status(500).json({ success: false, message: "Failed to save to file." });
+        res.status(500).json({ success: false, message: "Failed to save data." });
     }
 });
 
-// 2. Get Data (Used by Dashboard)
+// 2. Get All Data
 app.get('/api/data', (req, res) => {
     res.json(readData());
 });
 
-// 3. Serve Dashboard Page
+// 3. Serve Dashboard
 app.get('/dashboard', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
 
 app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`🚀 Server running on port ${PORT}`);
 });
