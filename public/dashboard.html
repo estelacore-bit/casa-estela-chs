@@ -3,71 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Casa Estela Dashboard</title>
+    <title>Dashboard - Casa Estela</title>
     <style>
-        body { font-family: sans-serif; background: #f1f5f9; padding: 20px; }
-        .container { max-width: 900px; margin: auto; }
-        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        h1 { color: #1e293b; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.9rem; }
+        body { font-family: sans-serif; background: #f1f5f9; padding: 20px; margin: 0; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 900px; margin: auto; }
+        h1 { font-size: 1.5rem; color: #1e293b; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { text-align: left; padding: 12px; border-bottom: 1px solid #e2e8f0; }
-        th { background: #f8fafc; color: #64748b; }
-        .badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; }
-        .tube { background: #dbeafe; color: #1e40af; }
-        .surface { background: #fef9c3; color: #854d0e; }
+        th { background: #f8fafc; font-size: 0.8rem; text-transform: uppercase; color: #64748b; }
+        .img-thumb { width: 50px; height: 50px; border-radius: 4px; object-fit: cover; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="card">
-            <h1>📊 Installation Logs</h1>
-            <div id="stats">Loading totals...</div>
-            <table id="log-table">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Location ID</th>
-                        <th>Type</th>
-                        <th>Old Status</th>
-                    </tr>
-                </thead>
-                <tbody id="table-body">
-                    </tbody>
-            </table>
-        </div>
+    <div class="card">
+        <h1>📊 Installation Logs</h1>
+        <div id="count">Total: 0</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Photo</th>
+                    <th>ID</th>
+                    <th>Date</th>
+                    <th>Old Status</th>
+                </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+        </table>
     </div>
 
     <script>
-        async function loadDashboard() {
-            const response = await fetch('/api/data');
-            const data = await response.json();
+        async function load() {
+            const res = await fetch('/api/data');
+            const data = await res.json();
+            document.getElementById('count').innerText = `Total Installed: ${data.length}`;
             const body = document.getElementById('table-body');
-            const stats = document.getElementById('stats');
-
-            if (data.length === 0) {
-                body.innerHTML = "<tr><td colspan='4'>No records found yet.</td></tr>";
-                return;
-            }
-
-            // Show simple stats
-            stats.innerHTML = `<strong>Total Installed:</strong> ${data.length}`;
-
-            // Sort by latest first
             data.reverse().forEach(item => {
-                const row = `
+                body.innerHTML += `
                     <tr>
-                        <td>${new Date(item.timestamp).toLocaleString()}</td>
+                        <td><img class="img-thumb" src="${item.photo}" onclick="window.open(this.src)"></td>
                         <td><strong>${item.generatedId}</strong></td>
-                        <td><span class="badge ${item.type === 'T' ? 'tube' : 'surface'}">
-                            ${item.type === 'T' ? 'Tube' : 'Surface'}
-                        </span></td>
-                        <td>${item.oldLight || 'N/A'}</td>
-                    </tr>
-                `;
-                body.innerHTML += row;
+                        <td>${new Date(item.timestamp).toLocaleString()}</td>
+                        <td>${item.oldStatus}</td>
+                    </tr>`;
             });
         }
-        loadDashboard();
+        load();
     </script>
 </body>
 </html>
